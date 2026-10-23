@@ -1,0 +1,45 @@
+#include <stdlib.h>
+
+int **res, *path, *cols;
+int count, cap;
+
+void dfs(struct TreeNode* root, int sum, int depth) {
+    if (!root) return;
+
+    path[depth] = root->val;
+    sum -= root->val;
+
+    if (!root->left && !root->right && sum == 0) {
+        if (count == cap) {
+            cap *= 2;
+            res = realloc(res, cap * sizeof(int *));
+            cols = realloc(cols, cap * sizeof(int));
+        }
+
+        res[count] = malloc((depth + 1) * sizeof(int));
+        for (int i = 0; i <= depth; i++)
+            res[count][i] = path[i];
+
+        cols[count++] = depth + 1;
+        return;
+    }
+
+    dfs(root->left, sum, depth + 1);
+    dfs(root->right, sum, depth + 1);
+}
+
+int** pathSum(struct TreeNode* root, int targetSum,
+              int* returnSize, int** returnColumnSizes) {
+    cap = 16;
+    count = 0;
+    res = malloc(cap * sizeof(int *));
+    cols = malloc(cap * sizeof(int));
+    path = malloc(5000 * sizeof(int));
+
+    dfs(root, targetSum, 0);
+
+    free(path);
+    *returnSize = count;
+    *returnColumnSizes = cols;
+    return res;
+}
