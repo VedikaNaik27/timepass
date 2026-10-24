@@ -1,0 +1,17 @@
+void flatten(struct TreeNode* root) {
+    if (root == NULL)
+        return;
+
+    flatten(root->left);
+    flatten(root->right);
+
+    struct TreeNode* temp = root->right;
+    root->right = root->left;
+    root->left = NULL;
+
+    struct TreeNode* cur = root;
+    while (cur->right != NULL)
+        cur = cur->right;
+
+    cur->right = temp;
+}
