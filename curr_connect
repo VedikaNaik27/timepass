@@ -1,0 +1,26 @@
+struct Node* connect(struct Node* root) {
+    struct Node* curr = root;
+
+    while (curr) {
+        struct Node dummy = {0, NULL, NULL, NULL};
+        struct Node* tail = &dummy;
+
+        while (curr) {
+            if (curr->left) {
+                tail->next = curr->left;
+                tail = tail->next;
+            }
+
+            if (curr->right) {
+                tail->next = curr->right;
+                tail = tail->next;
+            }
+
+            curr = curr->next;
+        }
+
+        curr = dummy.next;
+    }
+
+    return root;
+}
