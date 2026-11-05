@@ -1,0 +1,131 @@
+#include <stdlib.h>
+#include <string.h>
+
+static char ***ans;
+static int *cols;
+static int count;
+
+int findIndex(char *s, char **words, int n) {
+    for (int i = 0; i < n; i++)
+        if (strcmp(s, words[i]) == 0) return i;
+    return -1;
+}
+
+void dfs(int cur, int start, int *path, int depth,
+         char **words, int **par, int *pc) {
+    path[depth++] = cur;
+
+    if (cur == start) {
+        ans = realloc(ans, (count + 1) * sizeof(char **));
+        cols = realloc(cols, (count + 1) * sizeof(int));
+
+        ans[count] = malloc(depth * sizeof(char *));
+        cols[count] = depth;
+
+        for (int i = 0; i < depth; i++) {
+            char *s = words[path[depth - 1 - i]];
+            ans[count][i] = malloc(strlen(s) + 1);
+            strcpy(ans[count][i], s);
+        }
+
+        count++;
+        return;
+    }
+
+    for (int i = 0; i < pc[cur]; i++)
+        dfs(par[cur][i], start, path, depth, words, par, pc);
+}
+
+char*** findLadders(char* beginWord, char* endWord,
+                    char** wordList, int wordListSize,
+                    int* returnSize, int** returnColumnSizes) {
+
+    *returnSize = 0;
+    *returnColumnSizes = NULL;
+    ans = NULL;
+    cols = NULL;
+    count = 0;
+
+    int n = wordListSize;
+    int start = n;
+    int end = findIndex(endWord, wordList, n);
+
+    if (end == -1) return NULL;
+
+    char **words = malloc((n + 1) * sizeof(char *));
+    for (int i = 0; i < n; i++) words[i] = wordList[i];
+    words[start] = beginWord;
+
+    int *dist = malloc((n + 1) * sizeof(int));
+    int *queue = malloc((n + 1) * sizeof(int));
+    int **par = malloc((n + 1) * sizeof(int *));
+    int *pc = calloc(n + 1, sizeof(int));
+
+    for (int i = 0; i <= n; i++) {
+        dist[i] = -1;
+        par[i] = malloc((n + 1) * sizeof(int));
+    }
+
+    int front = 0, rear = 0, endDist = -1;
+    queue[rear++] = start;
+    dist[start] = 0;
+
+    int len = strlen(beginWord);
+    char temp[10];
+
+    while (front < rear) {
+        int cur = queue[front++];
+
+        if (endDist != -1 && dist[cur] >= endDist)
+            continue;
+
+        strcpy(temp, words[cur]);
+
+        for (int j = 0; j < len; j++) {
+            char old = temp[j];
+
+            for (char c = 'a'; c <= 'z'; c++) {
+                if (c == old) continue;
+
+                temp[j] = c;
+                int next = findIndex(temp, words, n);
+
+                if (next == -1) continue;
+
+                if (dist[next] == -1) {
+                    dist[next] = dist[cur] + 1;
+                    queue[rear++] = next;
+                    par[next][pc[next]++] = cur;
+
+                    if (next == end)
+                        endDist = dist[next];
+                }
+                else if (dist[next] == dist[cur] + 1) {
+                    par[next][pc[next]++] = cur;
+                }
+            }
+
+            temp[j] = old;
+        }
+    }
+
+    if (dist[end] != -1) {
+        int *path = malloc((n + 1) * sizeof(int));
+        dfs(end, start, path, 0, words, par, pc);
+        free(path);
+    }
+
+    for (int i = 0; i <= n; i++)
+        free(par[i]);
+
+    free(par);
+    free(pc);
+    free(dist);
+    free(queue);
+    free(words);
+
+    *returnSize = count;
+    *returnColumnSizes = cols;
+
+    return ans;
+}
