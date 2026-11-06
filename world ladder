@@ -1,0 +1,79 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+int compareStrings(const void* a, const void* b) {
+    return strcmp(*(char**)a, *(char**)b);
+}
+
+int ladderLength(char* beginWord, char* endWord,
+                 char** wordList, int wordListSize) {
+
+    qsort(wordList, wordListSize, sizeof(char*), compareStrings);
+
+    char* key = endWord;
+    if (!bsearch(&key, wordList, wordListSize,
+                 sizeof(char*), compareStrings))
+        return 0;
+
+    int* visited = calloc(wordListSize, sizeof(int));
+
+    typedef struct {
+        char* word;
+        int level;
+    } Node;
+
+    Node* queue = malloc((wordListSize + 1) * sizeof(Node));
+
+    int front = 0, rear = 0;
+    int len = strlen(beginWord);
+
+    queue[rear++] = (Node){beginWord, 1};
+
+    char* temp = malloc(len + 1);
+
+    while (front < rear) {
+        Node curr = queue[front++];
+
+        if (strcmp(curr.word, endWord) == 0) {
+            free(visited);
+            free(queue);
+            free(temp);
+            return curr.level;
+        }
+
+        strcpy(temp, curr.word);
+
+        for (int i = 0; i < len; i++) {
+            char old = temp[i];
+
+            for (char c = 'a'; c <= 'z'; c++) {
+                if (c == old) continue;
+
+                temp[i] = c;
+                char* ptr = temp;
+
+                char** match = bsearch(&ptr, wordList,
+                    wordListSize, sizeof(char*), compareStrings);
+
+                if (match) {
+                    int idx = match - wordList;
+
+                    if (!visited[idx]) {
+                        visited[idx] = 1;
+                        queue[rear++] =
+                            (Node){wordList[idx], curr.level + 1};
+                    }
+                }
+            }
+
+            temp[i] = old;
+        }
+    }
+
+    free(visited);
+    free(queue);
+    free(temp);
+
+    return 0;
+}
