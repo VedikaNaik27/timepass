@@ -1,0 +1,59 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+bool isPal(char *s, int l, int r) {
+    while (l < r) {
+        if (s[l++] != s[r--])
+            return false;
+    }
+    return true;
+}
+
+void backtrack(char *s, int start, int n, char ***ans,
+               int *returnSize, int **returnColumnSizes,
+               char **path, int pathSize) {
+
+    if (start == n) {
+        ans[*returnSize] = malloc(pathSize * sizeof(char *));
+
+        for (int i = 0; i < pathSize; i++) {
+            ans[*returnSize][i] = malloc(strlen(path[i]) + 1);
+            strcpy(ans[*returnSize][i], path[i]);
+        }
+
+        returnColumnSizes[0][*returnSize] = pathSize;
+        (*returnSize)++;
+        return;
+    }
+
+    for (int i = start; i < n; i++) {
+        if (isPal(s, start, i)) {
+            int len = i - start + 1;
+            path[pathSize] = malloc(len + 1);
+            strncpy(path[pathSize], s + start, len);
+            path[pathSize][len] = '\0';
+
+            backtrack(s, i + 1, n, ans, returnSize,
+                      returnColumnSizes, path, pathSize + 1);
+
+            free(path[pathSize]);
+        }
+    }
+}
+
+char*** partition(char* s, int* returnSize, int** returnColumnSizes) {
+    int n = strlen(s);
+
+    char ***ans = malloc(32768 * sizeof(char **));
+    *returnColumnSizes = malloc(32768 * sizeof(int));
+    *returnSize = 0;
+
+    char **path = malloc(n * sizeof(char *));
+
+    backtrack(s, 0, n, ans, returnSize,
+              returnColumnSizes, path, 0);
+
+    free(path);
+    return ans;
+}
