@@ -1,0 +1,26 @@
+int canCompleteCircuit(int* gas, int gasSize, int* cost, int costSize) {
+    int total_gas = 0, total_cost = 0;
+    for (int i = 0; i < gasSize; i++) {
+        total_gas += gas[i];
+        total_cost += cost[i];
+    }
+    
+    if (total_gas < total_cost) {
+        return -1;
+    }
+    
+    int current_tank = 0;
+    int start_station = 0;
+    
+    for (int i = 0; i < gasSize; i++) {
+        current_tank += gas[i] - cost[i];
+        
+        // If tank goes negative, we cannot start from start_station up to i
+        if (current_tank < 0) {
+            start_station = i + 1;
+            current_tank = 0;
+        }
+    }
+    
+    return start_station;
+}
