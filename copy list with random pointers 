@@ -1,0 +1,39 @@
+struct Node* copyRandomList(struct Node* head) {
+    if (head == NULL) return NULL;
+
+    struct Node *cur = head, *copy;
+
+    // Step 1: Create copied nodes
+    while (cur) {
+        copy = malloc(sizeof(struct Node));
+        copy->val = cur->val;
+        copy->random = NULL;
+        copy->next = cur->next;
+        cur->next = copy;
+        cur = copy->next;
+    }
+
+    // Step 2: Assign random pointers
+    cur = head;
+    while (cur) {
+        if (cur->random)
+            cur->next->random = cur->random->next;
+        cur = cur->next->next;
+    }
+
+    // Step 3: Separate the lists
+    cur = head;
+    struct Node *newHead = head->next;
+
+    while (cur) {
+        copy = cur->next;
+        cur->next = copy->next;
+
+        if (copy->next)
+            copy->next = copy->next->next;
+
+        cur = cur->next;
+    }
+
+    return newHead;
+}
