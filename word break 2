@@ -1,0 +1,90 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdbool.h>
+
+typedef struct {
+    char **ans;
+    int count, capacity;
+    char *path;
+    int pathLen;
+    char *s;
+    char **dict;
+    int dictSize;
+    bool *dp;
+    int n;
+} Context;
+
+void dfs(Context *c, int start) {
+    if (start == c->n) {
+        char *str = malloc(c->pathLen + 1);
+        strcpy(str, c->path);
+
+        if (c->count == c->capacity) {
+            c->capacity = c->capacity ? c->capacity * 2 : 16;
+            c->ans = realloc(c->ans,
+                c->capacity * sizeof(char *));
+        }
+
+        c->ans[c->count++] = str;
+        return;
+    }
+
+    for (int i = 0; i < c->dictSize; i++) {
+        int len = strlen(c->dict[i]);
+
+        if (start + len <= c->n &&
+            c->dp[start + len] &&
+            strncmp(c->s + start, c->dict[i], len) == 0) {
+
+            int oldLen = c->pathLen;
+
+            if (oldLen > 0)
+                c->path[c->pathLen++] = ' ';
+
+            strcpy(c->path + c->pathLen, c->dict[i]);
+            c->pathLen += len;
+
+            dfs(c, start + len);
+
+            c->pathLen = oldLen;
+            c->path[oldLen] = '\0';
+        }
+    }
+}
+
+char** wordBreak(char* s, char** wordDict, int wordDictSize,
+                 int* returnSize) {
+
+    int n = strlen(s);
+
+    Context c = {0};
+    c.s = s;
+    c.dict = wordDict;
+    c.dictSize = wordDictSize;
+    c.n = n;
+
+    c.dp = calloc(n + 1, sizeof(bool));
+    c.path = calloc(2 * n + 1, 1);
+    c.dp[n] = true;
+
+    for (int i = n - 1; i >= 0; i--) {
+        for (int j = 0; j < wordDictSize; j++) {
+            int len = strlen(wordDict[j]);
+
+            if (i + len <= n && c.dp[i + len] &&
+                strncmp(s + i, wordDict[j], len) == 0) {
+                c.dp[i] = true;
+                break;
+            }
+        }
+    }
+
+    if (c.dp[0])
+        dfs(&c, 0);
+
+    free(c.dp);
+    free(c.path);
+
+    *returnSize = c.count;
+    return c.ans;
+}
